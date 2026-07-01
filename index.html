@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>小小知識王｜新題庫全頁注音深色抽卡機器</title>
+  <style>
+
+    @font-face {
+      font-family: "Bpmf GenYo Gothic R";
+      src:
+        local("Bpmf GenYo Gothic R"),
+        local("BpmfGenYoGothic-R"),
+        local("ㄅ源樣注音黑體 R"),
+        url("./BpmfGenYoGothic-R (2)(1).ttf") format("truetype"),
+        url("./BpmfGenYoGothic-R (2).ttf") format("truetype"),
+        url("./BpmfGenYoGothic-R.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      --bg: #f5efe6;
+      --bg-2: #e7dccd;
+      --ink: #3f3a33;
+      --muted: #776c61;
+      --panel: rgba(255, 252, 246, 0.88);
+      --panel-solid: #fffaf2;
+      --line: rgba(63, 58, 51, 0.14);
+      --shadow: 0 24px 70px rgba(80, 62, 44, 0.18);
+      --soft-shadow: 0 12px 30px rgba(80, 62, 44, 0.13);
+      --card-front: #fff9ef;
+      --card-back: #c9b9a2;
+      --accent: #9f8f79;
+      --accent-2: #7f9681;
+      --accent-3: #b98e7c;
+      --danger: #b86458;
+      --ok: #759475;
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --timer-progress: 100%;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.76), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(194, 180, 158, 0.28), transparent 32%),
+        linear-gradient(135deg, var(--bg), var(--bg-2));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.46;
+      background-image:
+        linear-gradient(rgba(63,58,51,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(63,58,51,0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at center, black 0 58%, transparent 86%);
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app {
+      position: relative;
+      width: min(1180px, calc(100vw - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 34px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen {
+      width: 100%;
+      display: none;
+      animation: fadeIn 360ms ease both;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .hero, .menu-panel, .draw-panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.62);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius-xl);
+    }
+
+    .hero {
+      min-height: min(720px, calc(100vh - 72px));
+      padding: clamp(28px, 4vw, 58px);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: clamp(28px, 5vw, 64px);
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .brand-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.46);
+      color: var(--muted);
+      font-size: 0.96rem;
+      letter-spacing: 0.08em;
+    }
+
+    .brand-kicker::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 0 6px rgba(127, 150, 129, 0.14);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    .hero h1 {
+      margin-top: 22px;
+      font-size: clamp(3rem, 8vw, 6.9rem);
+      line-height: 0.95;
+      letter-spacing: -0.08em;
+      font-weight: 900;
+    }
+
+    .hero h1 span {
+      display: block;
+      color: var(--accent);
+    }
+
+    .hero-subtitle {
+      margin-top: 28px;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      margin-top: 34px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .primary-btn, .ghost-btn, .difficulty-btn, .grade-btn, .danger-btn {
+      border-radius: 999px;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .primary-btn {
+      padding: 15px 24px;
+      color: #fffaf3;
+      background: linear-gradient(135deg, #6f846e, #9d8d78);
+      box-shadow: 0 14px 30px rgba(111, 132, 110, 0.25);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .ghost-btn {
+      padding: 13px 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.46);
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .primary-btn:hover, .ghost-btn:hover, .difficulty-btn:hover, .grade-btn:hover, .danger-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--soft-shadow);
+    }
+
+    .card-sculpture {
+      position: relative;
+      height: 510px;
+      min-height: 400px;
+    }
+
+    .floating-card {
+      position: absolute;
+      width: 178px;
+      height: 246px;
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.32), transparent 34%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.14) 0 7px, transparent 7px 16px),
+        var(--card-back);
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 24px 48px rgba(66, 54, 42, 0.18);
+      display: grid;
+      place-items: center;
+      animation: floatCard 5.6s ease-in-out infinite;
+    }
+
+    .floating-card::before {
+      content: "？";
+      width: 74px;
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(255, 250, 242, 0.82);
+      color: var(--accent);
+      font-size: 3rem;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 1px rgba(63,58,51,0.08);
+    }
+
+    .floating-card.one { left: 8%; top: 15%; transform: rotate(-14deg); }
+    .floating-card.two { right: 17%; top: 8%; transform: rotate(10deg); animation-delay: -1.8s; background-color: #b8c0a9; }
+    .floating-card.three { left: 34%; bottom: 3%; transform: rotate(4deg); animation-delay: -3.1s; background-color: #caa693; }
+    .floating-orb {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(0.2px);
+      opacity: 0.78;
+    }
+
+    .orb-a { width: 84px; height: 84px; right: 7%; bottom: 24%; background: rgba(127, 150, 129, 0.23); }
+    .orb-b { width: 48px; height: 48px; left: 18%; bottom: 28%; background: rgba(185, 142, 124, 0.25); }
+
+    .menu-panel {
+      min-height: min(720px, calc(100vh - 72px));
+      padding: clamp(24px, 4vw, 48px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 0.94rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .menu-panel h2, .draw-panel h2 {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.14;
+      letter-spacing: -0.04em;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      margin-top: 34px;
+    }
+
+    .grade-btn, .difficulty-btn {
+      min-height: 240px;
+      padding: 28px;
+      text-align: left;
+      background: rgba(255,250,242,0.76);
+      border: 1px solid rgba(63,58,51,0.10);
+      box-shadow: 0 14px 40px rgba(66, 54, 42, 0.10);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .grade-btn::after, .difficulty-btn::after {
+      content: "";
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      border-radius: 999px;
+      right: -78px;
+      bottom: -84px;
+      background: rgba(159, 143, 121, 0.13);
+    }
+
+    .grade-icon, .difficulty-icon {
+      width: 62px;
+      height: 62px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      background: rgba(127, 150, 129, 0.15);
+      font-size: 2rem;
+    }
+
+    .grade-btn h3, .difficulty-btn h3 {
+      font-size: clamp(1.6rem, 3vw, 2.45rem);
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+
+    .grade-btn p, .difficulty-btn p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.05rem;
+      max-width: 360px;
+    }
+
+    .difficulty-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .difficulty-btn {
+      min-height: 220px;
+    }
+
+    .difficulty-btn.easy .difficulty-icon { background: rgba(117, 148, 117, 0.16); }
+    .difficulty-btn.medium .difficulty-icon { background: rgba(159, 143, 121, 0.17); }
+    .difficulty-btn.hard .difficulty-icon { background: rgba(184, 100, 88, 0.14); }
+
+    .draw-panel {
+      min-height: min(780px, calc(100vh - 42px));
+      padding: clamp(18px, 3vw, 38px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .draw-header {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.52);
+      border: 1px solid var(--line);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 0 7px rgba(127,150,129,0.14);
+    }
+
+    .draw-stage {
+      position: relative;
+      min-height: 560px;
+      display: grid;
+      place-items: center;
+    }
+
+    .shuffle-zone {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 300ms ease, transform 300ms ease;
+    }
+
+    .shuffle-zone.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .deck {
+      position: relative;
+      width: 168px;
+      height: 228px;
+    }
+
+    .deck-card {
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.34), transparent 32%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.13) 0 7px, transparent 7px 16px),
+        var(--card-back);
+      border: 1px solid rgba(255,255,255,0.56);
+      box-shadow: 0 22px 44px rgba(66,54,42,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 3rem;
+      color: rgba(255,250,242,0.92);
+      font-weight: 900;
+    }
+
+    .deck-card:nth-child(1) { transform: translate(-18px, 6px) rotate(-10deg); animation: shuffleOne 780ms ease-in-out infinite; }
+    .deck-card:nth-child(2) { transform: translate(14px, -8px) rotate(9deg); animation: shuffleTwo 780ms ease-in-out infinite; }
+    .deck-card:nth-child(3) { transform: translate(0, 0) rotate(0deg); animation: shuffleThree 780ms ease-in-out infinite; }
+
+    .shuffle-text {
+      margin-top: 260px;
+      color: var(--muted);
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      animation: pulseText 900ms ease-in-out infinite alternate;
+    }
+
+    .cards-spread {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 74px 20px 42px;
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      transition: opacity 420ms ease, transform 420ms ease;
+    }
+
+    .cards-spread.show {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .pick-card {
+      width: clamp(92px, 9.2vw, 122px);
+      height: clamp(132px, 13vw, 172px);
+      perspective: 1100px;
+      border-radius: 18px;
+      background: transparent;
+      transform: translateY(24px) scale(0.92) rotate(var(--spread-rotate, 0deg));
+      opacity: 0;
+      animation: dealCard 520ms cubic-bezier(.2,.8,.2,1) forwards;
+      animation-delay: var(--deal-delay, 0ms);
+    }
+
+    .pick-card:hover {
+      z-index: 6;
+      transform: translateY(-8px) scale(1.04) rotate(var(--spread-rotate, 0deg));
+    }
+
+    .pick-card.collect {
+      pointer-events: none;
+      animation: collectCard 520ms cubic-bezier(.6,-0.06,.72,.38) forwards;
+    }
+
+    .pick-card.chosen {
+      pointer-events: none;
+      z-index: 20;
+      animation: chosenCard 640ms cubic-bezier(.2,.8,.2,1) forwards;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 720ms cubic-bezier(.25,.9,.25,1);
+    }
+
+    .pick-card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      backface-visibility: hidden;
+      border: 1px solid rgba(255,255,255,0.58);
+      box-shadow: 0 14px 30px rgba(66,54,42,0.13);
+      overflow: hidden;
+    }
+
+    .card-back {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.31), transparent 34%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.13) 0 7px, transparent 7px 16px),
+        var(--card-back);
+      display: grid;
+      place-items: center;
+    }
+
+    .card-back span {
+      width: 45%;
+      aspect-ratio: 1;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,250,242,0.82);
+      color: var(--accent);
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+    }
+
+    .card-front {
+      transform: rotateY(180deg);
+      background: var(--card-front);
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      text-align: center;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .question-view {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: minmax(270px, 0.82fr) minmax(320px, 1.18fr);
+      gap: clamp(18px, 3vw, 34px);
+      align-items: stretch;
+      padding: 78px clamp(16px, 2.8vw, 34px) 34px;
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+      transition: opacity 380ms ease, transform 380ms ease;
+      z-index: 8;
+    }
+
+    .question-view.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .timer-card, .question-card {
+      border-radius: var(--radius-lg);
+      background: rgba(255,250,242,0.83);
+      border: 1px solid rgba(63,58,51,0.10);
+      box-shadow: 0 16px 42px rgba(66,54,42,0.12);
+    }
+
+    .timer-card {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 430px;
+    }
+
+    .timer-ring {
+      width: min(260px, 62vw);
+      aspect-ratio: 1;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background:
+        conic-gradient(var(--accent-2) var(--timer-progress), rgba(255,244,222,0.11) 0);
+      box-shadow: inset 0 0 0 1px rgba(63,58,51,0.06);
+      position: relative;
+    }
+
+    .timer-ring::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 999px;
+      background: var(--panel-solid);
+      box-shadow: inset 0 0 0 1px rgba(63,58,51,0.08);
+    }
+
+    .timer-number {
+      position: relative;
+      z-index: 2;
+      font-size: clamp(4rem, 10vw, 6.5rem);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+    }
+
+    .timer-label {
+      position: relative;
+      z-index: 2;
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.16em;
+    }
+
+    .timer-actions {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .danger-btn {
+      padding: 13px 19px;
+      background: rgba(184, 100, 88, 0.13);
+      color: #9b5148;
+      border: 1px solid rgba(184, 100, 88, 0.20);
+      font-weight: 900;
+    }
+
+    .question-card {
+      padding: clamp(22px, 3vw, 38px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 430px;
+    }
+
+    .question-number {
+      color: var(--muted);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      margin-bottom: 20px;
+    }
+
+    .question-text {
+      font-size: clamp(2rem, 4.6vw, 4.7rem);
+      line-height: 1.24;
+      letter-spacing: -0.04em;
+      font-weight: 950;
+    }
+
+    .answer-box {
+      margin-top: 28px;
+      padding: 20px 22px;
+      border-radius: 20px;
+      background: rgba(117, 148, 117, 0.12);
+      border: 1px solid rgba(117, 148, 117, 0.22);
+      display: none;
+      animation: answerPop 420ms cubic-bezier(.17,.84,.44,1) both;
+    }
+
+    .answer-box.show {
+      display: block;
+    }
+
+    .answer-label {
+      color: var(--ok);
+      font-weight: 950;
+      letter-spacing: 0.14em;
+      margin-bottom: 10px;
+    }
+
+    .answer-text {
+      font-size: clamp(1.7rem, 4vw, 3.4rem);
+      line-height: 1.28;
+      font-weight: 950;
+      color: #526f52;
+    }
+
+    .after-actions {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .after-actions.show {
+      display: flex;
+    }
+
+    .mini-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatCard {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -18px; }
+    }
+
+    @keyframes shuffleOne {
+      0%, 100% { transform: translate(-18px, 6px) rotate(-10deg); }
+      50% { transform: translate(42px, -8px) rotate(13deg); }
+    }
+
+    @keyframes shuffleTwo {
+      0%, 100% { transform: translate(14px, -8px) rotate(9deg); }
+      50% { transform: translate(-40px, 10px) rotate(-14deg); }
+    }
+
+    @keyframes shuffleThree {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(0, -18px) rotate(3deg); }
+    }
+
+    @keyframes pulseText {
+      from { opacity: 0.55; }
+      to { opacity: 1; }
+    }
+
+    @keyframes dealCard {
+      to { opacity: 1; transform: translateY(0) scale(1) rotate(var(--spread-rotate, 0deg)); }
+    }
+
+    @keyframes collectCard {
+      to {
+        opacity: 0;
+        transform: translate(var(--collect-x, 0px), var(--collect-y, -200px)) scale(0.2) rotate(18deg);
+      }
+    }
+
+    @keyframes chosenCard {
+      0% { opacity: 1; }
+      100% { opacity: 1; transform: translateY(-14px) scale(1.14) rotate(0deg); }
+    }
+
+    @keyframes answerPop {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .card-sculpture {
+        height: 360px;
+        min-height: 300px;
+      }
+
+      .floating-card {
+        width: 138px;
+        height: 194px;
+      }
+
+      .choice-grid, .difficulty-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .grade-btn, .difficulty-btn {
+        min-height: 180px;
+      }
+
+      .question-view {
+        grid-template-columns: 1fr;
+        padding-top: 88px;
+      }
+
+      .timer-card, .question-card {
+        min-height: auto;
+      }
+
+      .timer-ring {
+        width: 190px;
+      }
+
+      .draw-stage {
+        min-height: 760px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100vw - 18px, 1180px);
+        padding: 9px 0;
+      }
+
+      .hero, .menu-panel, .draw-panel {
+        border-radius: 24px;
+      }
+
+      .topbar, .draw-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .cards-spread {
+        gap: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .pick-card {
+        width: 78px;
+        height: 112px;
+        border-radius: 14px;
+      }
+
+      .card-face {
+        border-radius: 14px;
+      }
+
+      .question-text {
+        font-size: 2rem;
+      }
+    }
+
+
+
+    /* 深色主題與防裁切調整 */
+    :root {
+      --bg: #080b12;
+      --bg-2: #151a24;
+      --ink: #f7efe1;
+      --muted: #b8ad9d;
+      --panel: rgba(16, 20, 31, 0.88);
+      --panel-solid: #111722;
+      --line: rgba(255, 244, 222, 0.16);
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+      --soft-shadow: 0 14px 36px rgba(0, 0, 0, 0.36);
+      --card-front: #161d2a;
+      --card-back: #273047;
+      --accent: #f4c76f;
+      --accent-2: #7fd1b9;
+      --accent-3: #d99b83;
+      --danger: #ff786d;
+      --ok: #8fe0a4;
+    }
+
+    html {
+      background: #080b12;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 16% 10%, rgba(127, 209, 185, 0.18), transparent 30%),
+        radial-gradient(circle at 84% 18%, rgba(244, 199, 111, 0.15), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(74, 88, 132, 0.22), transparent 42%),
+        linear-gradient(135deg, #080b12, #151a24 52%, #0b1018);
+    }
+
+    body::before {
+      opacity: 0.34;
+      background-image:
+        linear-gradient(rgba(255,244,222,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,244,222,0.045) 1px, transparent 1px);
+    }
+
+    .hero, .menu-panel, .draw-panel {
+      background: linear-gradient(145deg, rgba(22, 28, 42, 0.94), rgba(11, 15, 24, 0.90));
+      border: 1px solid rgba(255, 244, 222, 0.16);
+      box-shadow: var(--shadow);
+    }
+
+    .draw-panel {
+      overflow: visible;
+    }
+
+    .brand-kicker,
+    .ghost-btn,
+    .status-pill {
+      background: rgba(255, 244, 222, 0.07);
+      border-color: rgba(255, 244, 222, 0.18);
+      color: var(--muted);
+    }
+
+    .primary-btn {
+      color: #111722;
+      background: linear-gradient(135deg, #f4c76f, #7fd1b9);
+      box-shadow: 0 16px 36px rgba(127, 209, 185, 0.18);
+    }
+
+    .danger-btn {
+      background: rgba(255, 120, 109, 0.13);
+      color: #ffd6d2;
+      border-color: rgba(255, 120, 109, 0.28);
+    }
+
+    .grade-btn, .difficulty-btn,
+    .timer-card, .question-card {
+      background: rgba(255, 244, 222, 0.075);
+      border: 1px solid rgba(255, 244, 222, 0.14);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+    }
+
+    .grade-btn::after, .difficulty-btn::after {
+      background: rgba(244, 199, 111, 0.10);
+    }
+
+    .grade-icon, .difficulty-icon {
+      background: rgba(127, 209, 185, 0.14);
+    }
+
+    .difficulty-btn.easy .difficulty-icon { background: rgba(143, 224, 164, 0.15); }
+    .difficulty-btn.medium .difficulty-icon { background: rgba(244, 199, 111, 0.16); }
+    .difficulty-btn.hard .difficulty-icon { background: rgba(255, 120, 109, 0.14); }
+
+    .floating-card,
+    .deck-card,
+    .card-back {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.12), transparent 34%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0 7px, transparent 7px 16px),
+        linear-gradient(135deg, #2b3551, #1b2234);
+      border-color: rgba(255, 244, 222, 0.18);
+      box-shadow: 0 24px 52px rgba(0, 0, 0, 0.38);
+    }
+
+    .floating-card::before,
+    .card-back span,
+    .timer-ring::before {
+      background: rgba(17, 23, 34, 0.92);
+      color: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(255, 244, 222, 0.12);
+    }
+
+    .card-front {
+      background: linear-gradient(145deg, #151c2a, #0f1420);
+      color: var(--accent);
+      border-color: rgba(255, 244, 222, 0.18);
+    }
+
+    .question-view {
+      align-items: stretch;
+      padding-top: 92px;
+      padding-bottom: 38px;
+    }
+
+    .question-card {
+      justify-content: flex-start;
+      gap: 0;
+      overflow: visible;
+      min-width: 0;
+    }
+
+    .question-number {
+      flex: 0 0 auto;
+      color: #d5c8b4;
+    }
+
+    .question-text {
+      font-size: clamp(1.75rem, 3.25vw, 3.65rem);
+      line-height: 1.34;
+      letter-spacing: -0.02em;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      max-width: 100%;
+    }
+
+    .answer-box {
+      background: rgba(143, 224, 164, 0.10);
+      border-color: rgba(143, 224, 164, 0.25);
+      flex: 0 0 auto;
+    }
+
+    .answer-label {
+      color: var(--ok);
+    }
+
+    .answer-text {
+      font-size: clamp(1.45rem, 3.2vw, 2.85rem);
+      line-height: 1.35;
+      color: #bcf4c7;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    .timer-ring {
+      background:
+        conic-gradient(var(--accent-2) var(--timer-progress), rgba(255,244,222,0.11) 0);
+      box-shadow: inset 0 0 0 1px rgba(255,244,222,0.08), 0 18px 38px rgba(0,0,0,0.28);
+    }
+
+    .timer-label,
+    .mini-note,
+    .hero-subtitle,
+    .grade-btn p,
+    .difficulty-btn p,
+    .shuffle-text,
+    .eyebrow {
+      color: var(--muted);
+    }
+
+    .after-actions {
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 900px) {
+      .draw-panel {
+        overflow: visible;
+      }
+
+      .question-view {
+        position: relative;
+        inset: auto;
+        padding: 88px 0 10px;
+      }
+
+      .draw-stage {
+        min-height: 780px;
+        align-items: start;
+      }
+
+      .question-card {
+        min-height: auto;
+      }
+
+      .question-text {
+        font-size: clamp(1.55rem, 6vw, 2.6rem);
+      }
+
+      .answer-text {
+        font-size: clamp(1.35rem, 5vw, 2.2rem);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .question-view {
+        padding-top: 72px;
+      }
+
+      .question-card {
+        padding: 20px;
+      }
+
+      .question-text {
+        font-size: clamp(1.45rem, 7vw, 2.15rem);
+        line-height: 1.42;
+      }
+
+      .answer-text {
+        font-size: clamp(1.25rem, 5.8vw, 1.85rem);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  
+
+    /* 注音版與無 icon 調整 */
+    .grade-icon,
+    .difficulty-icon,
+    .status-dot {
+      display: none !important;
+    }
+
+    .grade-btn,
+    .difficulty-btn {
+      min-height: 188px;
+      padding-top: 30px;
+    }
+
+    .status-pill {
+      gap: 0;
+    }
+
+    body.low-grade-mode,
+    body.low-grade-mode button,
+    body.low-grade-mode .app,
+    body.low-grade-mode .screen,
+    body.low-grade-mode .hero,
+    body.low-grade-mode .menu-panel,
+    body.low-grade-mode .draw-panel,
+    body.low-grade-mode .question-card,
+    body.low-grade-mode .answer-box,
+    body.low-grade-mode .timer-ring,
+    body.low-grade-mode .pick-card {
+      font-family: "Bpmf GenYo Gothic R", "ㄅ源樣注音黑體 R", "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
+      font-feature-settings: "kern" 1;
+    }
+
+    .low-grade-mode .question-card {
+      padding-top: clamp(28px, 3.2vw, 46px);
+      padding-bottom: clamp(28px, 3.2vw, 46px);
+    }
+
+    .low-grade-mode .question-text,
+    .low-grade-mode .answer-text,
+    .low-grade-mode .grade-btn,
+    .low-grade-mode .difficulty-btn,
+    .low-grade-mode .status-pill,
+    .low-grade-mode .timer-hint,
+    .low-grade-mode .timer-number,
+    .low-grade-mode .after-actions button,
+    .low-grade-mode .draw-top,
+    .low-grade-mode .menu-title,
+    .low-grade-mode .menu-subtitle {
+      letter-spacing: 0.035em;
+      line-height: 1.8;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .low-grade-mode .question-text {
+      font-size: clamp(1.3rem, 2.4vw, 2.75rem);
+      line-height: 1.85;
+    }
+
+    .low-grade-mode .answer-text {
+      font-size: clamp(1.18rem, 2.25vw, 2.35rem);
+      line-height: 1.85;
+    }
+
+    @media (max-width: 900px) {
+      .low-grade-mode .question-text {
+        font-size: clamp(1.12rem, 4.25vw, 1.95rem);
+        line-height: 1.82;
+      }
+
+      .low-grade-mode .answer-text {
+        font-size: clamp(1.04rem, 4.05vw, 1.75rem);
+        line-height: 1.82;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .grade-btn,
+      .difficulty-btn {
+        min-height: 156px;
+      }
+
+      .low-grade-mode .question-text {
+        font-size: clamp(1rem, 4.8vw, 1.52rem);
+        line-height: 1.82;
+      }
+
+      .low-grade-mode .answer-text {
+        font-size: clamp(0.96rem, 4.55vw, 1.42rem);
+        line-height: 1.82;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <section id="startScreen" class="screen active">
+      <div class="hero">
+        <div>
+          <div class="brand-kicker">小小知識王｜抽卡挑戰</div>
+          <h1>抽卡<br><span>答題機</span></h1>
+          <p class="hero-subtitle">
+            先選年級，再選難度。已換成新版題庫，系統會洗牌、攤牌，學生抽出一張題卡後開始 40 秒倒數，時間到自動公布答案。
+          </p>
+          <div class="hero-actions">
+            <button class="primary-btn" onclick="goGrade()">開始抽卡</button>
+            <button class="ghost-btn" onclick="toggleFullScreen()">全螢幕模式</button>
+          </div>
+        </div>
+        <div class="card-sculpture" aria-hidden="true">
+          <div class="floating-card one"></div>
+          <div class="floating-card two"></div>
+          <div class="floating-card three"></div>
+          <div class="floating-orb orb-a"></div>
+          <div class="floating-orb orb-b"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gradeScreen" class="screen">
+      <div class="menu-panel">
+        <div class="topbar">
+          <div class="topbar-title">
+            <div class="eyebrow">Step 1</div>
+            <h2>選擇學生年級</h2>
+          </div>
+          <button class="ghost-btn" onclick="showScreen('startScreen')">回首頁</button>
+        </div>
+
+        <div class="choice-grid">
+          <button class="grade-btn" onclick="selectGrade('low')">
+            <h3>低年級</h3>
+            <p>適合國小低年級學生，題目較生活化，包含簡單地理、自然、語文與數學。</p>
+          </button>
+          <button class="grade-btn" onclick="selectGrade('upper')">
+            <h3>中高年級</h3>
+            <p>適合國小中、高年級學生，加入更多臺灣地理、歷史、自然與推理題。</p>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="difficultyScreen" class="screen">
+      <div class="menu-panel">
+        <div class="topbar">
+          <div class="topbar-title">
+            <div class="eyebrow" id="gradeLabel">Step 2</div>
+            <h2>選擇抽題難度</h2>
+          </div>
+          <button class="ghost-btn" onclick="showScreen('gradeScreen')">重新選年級</button>
+        </div>
+
+        <div class="choice-grid difficulty-grid">
+          <button class="difficulty-btn easy" onclick="startDraw('easy')">
+            <h3>簡單</h3>
+            <p id="easyCount">基礎暖身題，適合快速進入狀況。</p>
+          </button>
+          <button class="difficulty-btn medium" onclick="startDraw('medium')">
+            <h3>中等</h3>
+            <p id="mediumCount">需要多想一步，適合分組討論。</p>
+          </button>
+          <button class="difficulty-btn hard" onclick="startDraw('hard')">
+            <h3>困難</h3>
+            <p id="hardCount">挑戰題，適合搶答或加分。</p>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="drawScreen" class="screen">
+      <div class="draw-panel">
+        <div class="draw-header">
+          <div>
+            <div class="status-pill"><span id="drawStatus">準備洗牌</span></div>
+            <h2 id="drawTitle" style="margin-top: 14px;">抽一張題卡</h2>
+          </div>
+          <button class="ghost-btn" onclick="returnToDifficulty()">返回難度選擇</button>
+        </div>
+
+        <div class="draw-stage">
+          <div id="shuffleZone" class="shuffle-zone">
+            <div class="deck">
+              <div class="deck-card">？</div>
+              <div class="deck-card">？</div>
+              <div class="deck-card">？</div>
+            </div>
+            <div class="shuffle-text">洗牌中</div>
+          </div>
+
+          <div id="cardsSpread" class="cards-spread"></div>
+
+          <div id="questionView" class="question-view">
+            <div class="timer-card">
+              <div class="timer-ring" id="timerRing">
+                <div>
+                  <div class="timer-number" id="timerNumber">40</div>
+                  <div class="timer-label">秒</div>
+                </div>
+              </div>
+              <div class="timer-actions">
+                <button id="finishEarlyBtn" class="danger-btn" onclick="revealAnswer(true)">提前結束</button>
+              </div>
+              <p class="mini-note" id="timerHint">學生作答中，時間到會自動公布答案。</p>
+            </div>
+
+            <div class="question-card">
+              <div class="question-number" id="questionNumber">第 1 題</div>
+              <div class="question-text" id="questionText"></div>
+
+              <div id="answerBox" class="answer-box">
+                <div class="answer-label">正確解答</div>
+                <div class="answer-text" id="answerText"></div>
+              </div>
+
+              <div id="afterActions" class="after-actions">
+                <button class="primary-btn" onclick="returnToDifficulty()">回到難度選擇</button>
+                <button class="ghost-btn" onclick="startDraw(currentDifficulty)">同難度再抽一題</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questionBank = {
+      "low": {
+            "label": "國小低年級",
+            "easy": [
+                  {
+                        "q": "請說出一個和「雨」有關的詞語。",
+                        "a": "下雨、雨傘、雨滴、雨天。"
+                  },
+                  {
+                        "q": "形容天氣很熱，可以用哪個詞？",
+                        "a": "炎熱、很熱、酷熱。"
+                  },
+                  {
+                        "q": "請說出一個和「太陽」有關的詞語。",
+                        "a": "陽光、日出、白天、晴天……"
+                  },
+                  {
+                        "q": "「冷」的相反詞是什麼？",
+                        "a": "熱。"
+                  },
+                  {
+                        "q": "「大」的相反詞是什麼？",
+                        "a": "小。"
+                  },
+                  {
+                        "q": "「上」的相反詞是什麼？",
+                        "a": "下。"
+                  },
+                  {
+                        "q": "請說出一種紅色的水果。",
+                        "a": "蘋果、草莓、西瓜。"
+                  },
+                  {
+                        "q": "請說出一種黃色的水果。",
+                        "a": "香蕉、芒果、鳳梨。"
+                  },
+                  {
+                        "q": "冰淇淋放在太陽下太久會怎樣？",
+                        "a": "融化。"
+                  },
+                  {
+                        "q": "請說出一種會發光的東西。",
+                        "a": "太陽、電燈、手電筒。"
+                  },
+                  {
+                        "q": "請說出一個表示開心的詞。",
+                        "a": "快樂、高興、開心。"
+                  },
+                  {
+                        "q": "請說出一個表示難過的詞。",
+                        "a": "傷心、難過、想哭。"
+                  },
+                  {
+                        "q": "天氣很好時，可以用什麼詞形容？",
+                        "a": "晴朗、好天氣。"
+                  },
+                  {
+                        "q": "雨下得很大，可以用什麼詞形容？",
+                        "a": "大雨、傾盆大雨。"
+                  },
+                  {
+                        "q": "請說出一個臺灣的城市。",
+                        "a": "臺北、臺南、高雄、臺中。"
+                  },
+                  {
+                        "q": "臺灣最高的山叫什麼？",
+                        "a": "玉山。"
+                  },
+                  {
+                        "q": "一隻雞加一隻小狗有幾隻腳？",
+                        "a": "六隻。"
+                  },
+                  {
+                        "q": "「東」這個字有幾畫？",
+                        "a": "八畫。"
+                  },
+                  {
+                        "q": "「國」這個字有幾畫？",
+                        "a": "十一畫。"
+                  }
+            ],
+            "medium": [
+                  {
+                        "q": "請說出兩個和「風」有關的詞語。",
+                        "a": "微風、強風、颱風、風吹。"
+                  },
+                  {
+                        "q": "請說出兩個和「雨」有關的詞語。",
+                        "a": "雨傘、雨滴、大雨、下雨。"
+                  },
+                  {
+                        "q": "請說出兩個會發光的東西。",
+                        "a": "太陽、電燈、手電筒、星星。"
+                  },
+                  {
+                        "q": "請說出兩個圓形的東西。",
+                        "a": "球、太陽、月亮、盤子。"
+                  },
+                  {
+                        "q": "請說出兩個長長的東西。",
+                        "a": "繩子、鉛筆、尺、蛇。"
+                  },
+                  {
+                        "q": "請說出兩種生活中常見的液體。",
+                        "a": "水、牛奶、果汁、湯。"
+                  },
+                  {
+                        "q": "請說出兩種住在水裡的動物。",
+                        "a": "魚、蝦、螃蟹、海龜。"
+                  },
+                  {
+                        "q": "請說出兩種會飛的動物。",
+                        "a": "鳥、蝴蝶、蜜蜂、蜻蜓。"
+                  },
+                  {
+                        "q": "請說出兩個臺灣的地名。",
+                        "a": "臺北、臺南、高雄、花蓮。"
+                  },
+                  {
+                        "q": "請說出一個可以形容夏天的詞語。",
+                        "a": "炎熱、很熱、陽光強。"
+                  },
+                  {
+                        "q": "請說出一個可以形容冬天的詞語。",
+                        "a": "寒冷、很冷、涼涼的。"
+                  },
+                  {
+                        "q": "請說出一個可以形容春天的詞語。",
+                        "a": "溫暖、花開、舒服。"
+                  },
+                  {
+                        "q": "請說出一個可以形容秋天的詞語。",
+                        "a": "涼爽、落葉、秋風。"
+                  },
+                  {
+                        "q": "請用一句話描述夜晚的天空。",
+                        "a": "夜晚的天空有月亮和星星。"
+                  },
+                  {
+                        "q": "請用一句話描述你喜歡的水果。",
+                        "a": "我喜歡香蕉，因為它甜甜的。"
+                  },
+                  {
+                        "q": "請用一句話描述你喜歡的天氣。",
+                        "a": "我喜歡晴天，因為可以出去玩。"
+                  },
+                  {
+                        "q": "花朵可以吸引哪些小動物？",
+                        "a": "蜜蜂、蝴蝶。"
+                  },
+                  {
+                        "q": "請說出一種可以保護眼睛的正確方法。",
+                        "a": "不要太近看書、不要看太久螢幕。"
+                  },
+                  {
+                        "q": "請說出一種節省用水的正確方法。",
+                        "a": "刷牙時關水龍頭。"
+                  },
+                  {
+                        "q": "請說出一種節省用電的方法。",
+                        "a": "離開房間要關燈。"
+                  },
+                  {
+                        "q": "如果你有 10 元，花了 4 元，還剩多少元？",
+                        "a": "6 元。"
+                  },
+                  {
+                        "q": "如果你有 15 顆糖，吃掉 2 顆，還剩幾顆？",
+                        "a": "13 顆。"
+                  },
+                  {
+                        "q": "有 3 個人，每人拿 2 顆球，一共有幾顆球？",
+                        "a": "6 顆。"
+                  },
+                  {
+                        "q": "有 4 盒餅乾，每盒 2 片，一共有幾片？",
+                        "a": "8 片。"
+                  },
+                  {
+                        "q": "兩隻牛加一隻雞有幾條腿？",
+                        "a": "10 條。"
+                  },
+                  {
+                        "q": "有 12 枝鉛筆，平均分給 3 人，每人幾枝？",
+                        "a": "4 枝。"
+                  }
+            ],
+            "hard": [
+                  {
+                        "q": "請說出三個和「天氣」有關的詞語。",
+                        "a": "晴天、雨天、陰天、颱風。"
+                  },
+                  {
+                        "q": "請說出三個和「水」有關的詞語。",
+                        "a": "河水、雨水、海水、開水。"
+                  },
+                  {
+                        "q": "請說出三個會用到電的東西。",
+                        "a": "電燈、電視、冰箱、冷氣。"
+                  },
+                  {
+                        "q": "請用兩句話描述下雨天。",
+                        "a": "天空下著雨，地面變得濕濕的。"
+                  },
+                  {
+                        "q": "請用兩句話描述夏天。",
+                        "a": "夏天天氣很熱，大家常吃冰或吹電風扇。"
+                  },
+                  {
+                        "q": "請用兩句話描述冬天。",
+                        "a": "冬天天氣很冷，大家會穿厚衣服。"
+                  },
+                  {
+                        "q": "請說明為什麼不能亂丟垃圾。",
+                        "a": "因為會讓環境變髒，也可能傷害動物。"
+                  },
+                  {
+                        "q": "請說明為什麼要節省用水。",
+                        "a": "因為水很重要，不能浪費。"
+                  },
+                  {
+                        "q": "請說明為什麼離開教室要關燈。",
+                        "a": "因為可以節省用電。"
+                  },
+                  {
+                        "q": "請說明為什麼颱風天不要去海邊。",
+                        "a": "因為風浪很大，可能很危險。"
+                  },
+                  {
+                        "q": "請說明為什麼地震時要躲到桌子下。",
+                        "a": "因為桌子可以保護身體，避免被掉落物打到。"
+                  },
+                  {
+                        "q": "請說明植物為什麼需要陽光。",
+                        "a": "因為植物需要陽光才能長大。"
+                  },
+                  {
+                        "q": "請說明植物為什麼需要水。",
+                        "a": "因為水可以幫助植物生長。"
+                  },
+                  {
+                        "q": "請說明冰塊為什麼會融化。",
+                        "a": "因為遇到熱，冰會變成水。"
+                  },
+                  {
+                        "q": "請舉例一種交通工具，並說出它的用途。",
+                        "a": "公車，可以載人去別的地方。"
+                  },
+                  {
+                        "q": "請說出 10 以內的三個奇數。",
+                        "a": "1、3、5、7、9 中任三個。"
+                  },
+                  {
+                        "q": "請說出 10 以內的三個偶數。",
+                        "a": "2、4、6、8、10 中任三個。"
+                  },
+                  {
+                        "q": "有 20 元，買東西花了 7 元，還剩多少元？",
+                        "a": "13 元。"
+                  },
+                  {
+                        "q": "有 18 顆糖，平均分給 3 個人，每人幾顆？",
+                        "a": "6 顆。"
+                  },
+                  {
+                        "q": "有 5 盤水果，每盤 2 顆，一共有幾顆？",
+                        "a": "10 顆。"
+                  },
+                  {
+                        "q": "小明有 12 枝筆，又得到 5 枝，現在有幾枝？",
+                        "a": "17 枝。"
+                  },
+                  {
+                        "q": "桌上有 15 本書，拿走 6 本，還剩幾本？",
+                        "a": "9 本。"
+                  },
+                  {
+                        "q": "請用「太陽」造一個句子。",
+                        "a": "今天太陽很大。"
+                  },
+                  {
+                        "q": "請用「下雨」造一個句子。",
+                        "a": "今天下雨，我帶了雨傘。"
+                  },
+                  {
+                        "q": "請用「學校」造一個句子。",
+                        "a": "我每天去學校上課。"
+                  },
+                  {
+                        "q": "請用「臺灣」造一個句子。",
+                        "a": "臺灣有很多好吃的小吃。"
+                  }
+            ]
+      },
+      "upper": {
+            "label": "國小中高年級",
+            "easy": [
+                  {
+                        "q": "臺灣最高峰是什麼山？",
+                        "a": "玉山。"
+                  },
+                  {
+                        "q": "臺灣常見的民主制度，人民可以用什麼方式選出民意代表？",
+                        "a": "投票。"
+                  },
+                  {
+                        "q": "水的三態是固態、液態和什麼？",
+                        "a": "氣態。"
+                  },
+                  {
+                        "q": "人類用肺呼吸，魚類主要用什麼呼吸？",
+                        "a": "鰓。"
+                  },
+                  {
+                        "q": "「迅速」的意思接近哪一個詞？",
+                        "a": "快速。"
+                  },
+                  {
+                        "q": "「勇敢」的相反詞可以是什麼？",
+                        "a": "膽小。"
+                  },
+                  {
+                        "q": "36 加 27 等於多少？",
+                        "a": "63。"
+                  },
+                  {
+                        "q": "8 乘以 6 等於多少？",
+                        "a": "48。"
+                  },
+                  {
+                        "q": "100 減 45 等於多少？",
+                        "a": "55。"
+                  },
+                  {
+                        "q": "長方形有幾個直角？",
+                        "a": "四個。"
+                  },
+                  {
+                        "q": "如果一枝筆 10 元，買 6 枝要多少元？",
+                        "a": "60 元。"
+                  }
+            ],
+            "medium": [
+                  {
+                        "q": "臺灣本島西邊隔著臺灣海峽，對面是什麼地區？",
+                        "a": "中國。"
+                  },
+                  {
+                        "q": "臺灣東部常見高山和海岸相近，地形比較平坦還是崎嶇？",
+                        "a": "崎嶇。"
+                  },
+                  {
+                        "q": "臺灣早期原住民族主要以狩獵、採集、農耕和什麼維生？",
+                        "a": "漁撈／捕魚。"
+                  },
+                  {
+                        "q": "清朝時期，許多漢人移民來臺灣開墾，主要來自福建和哪裡？",
+                        "a": "廣東。"
+                  },
+                  {
+                        "q": "臺灣歷史上曾經經歷日本統治，時間從 1895 年到哪一年？",
+                        "a": "1945 年。"
+                  },
+                  {
+                        "q": "植物的葉子主要負責進行什麼作用？",
+                        "a": "光合作用。"
+                  },
+                  {
+                        "q": "食物鏈中，植物通常屬於生產者還是消費者？",
+                        "a": "生產者。"
+                  },
+                  {
+                        "q": "地震發生時，在室內應該先做什麼保護自己？",
+                        "a": "趴下、掩護、穩住。"
+                  },
+                  {
+                        "q": "「他跑得像風一樣快。」使用了什麼修辭？",
+                        "a": "譬喻。"
+                  },
+                  {
+                        "q": "125 加 375 等於多少？",
+                        "a": "500。"
+                  },
+                  {
+                        "q": "72 除以 9 等於多少？",
+                        "a": "8。"
+                  },
+                  {
+                        "q": "一個正方形邊長 5 公分，周長是多少？",
+                        "a": "20 公分。"
+                  },
+                  {
+                        "q": "1/2 和 2/4 哪一個比較大？",
+                        "a": "一樣大。"
+                  },
+                  {
+                        "q": "一本書 80 頁，小明每天看 10 頁，幾天可以看完？",
+                        "a": "8 天。"
+                  }
+            ],
+            "hard": [
+                  {
+                        "q": "臺灣中央山脈大致呈什麼方向延伸？",
+                        "a": "南北方向。"
+                  },
+                  {
+                        "q": "臺灣西部平原人口較多，和地形有什麼關係？",
+                        "a": "地勢較平坦，適合居住、交通和農業發展。"
+                  },
+                  {
+                        "q": "為什麼森林可以幫助保持水土？",
+                        "a": "樹根可以抓住土壤，減少土石流失。"
+                  },
+                  {
+                        "q": "物體受熱時通常會膨脹還是收縮？",
+                        "a": "膨脹。"
+                  },
+                  {
+                        "q": "聲音需要透過空氣、水或固體傳播，這些稱為什麼？",
+                        "a": "介質。"
+                  },
+                  {
+                        "q": "3/4 比 2/3 大還是小？",
+                        "a": "大。"
+                  },
+                  {
+                        "q": "一個長方形長 12 公分、寬 8 公分，面積是多少？",
+                        "a": "96 平方公分。"
+                  },
+                  {
+                        "q": "一輛車每小時走 60 公里，2 小時可以走幾公里？",
+                        "a": "120 公里。"
+                  },
+                  {
+                        "q": "有 48 顆糖果，平均分給 6 個人，每人可以拿幾顆？",
+                        "a": "8 顆。"
+                  },
+                  {
+                        "q": "「第一憨，種甘蔗給會社磅」這個俗諺是哪個時代流傳下來的？",
+                        "a": "日治時期。"
+                  },
+                  {
+                        "q": "朱一貴被稱為什麼「王」？",
+                        "a": "鴨母王。"
+                  }
+            ]
+      }
+};
+
+    const difficultyText = {
+      easy: "簡單",
+      medium: "中等",
+      hard: "困難"
+    };
+
+
+    function setDisplayText(element, text) {
+      element.textContent = text;
+    }
+
+    let currentGrade = "low";
+    let currentDifficulty = "easy";
+    let currentQuestions = [];
+    let currentQuestion = null;
+    let timer = null;
+    let secondsLeft = 40;
+    let answerRevealed = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
+      $(id).classList.add("active");
+    }
+
+    function goGrade() {
+      showScreen("gradeScreen");
+    }
+
+    function selectGrade(grade) {
+      currentGrade = grade;
+      document.body.classList.toggle("low-grade-mode", grade === "low");
+      updateDifficultyScreen();
+      showScreen("difficultyScreen");
+    }
+
+    function updateDifficultyScreen() {
+      const bank = questionBank[currentGrade];
+      $("gradeLabel").textContent = `Step 2｜${bank.label}`;
+      $("easyCount").textContent = `共 ${bank.easy.length} 張題卡，適合暖身與快速搶答。`;
+      $("mediumCount").textContent = `共 ${bank.medium.length} 張題卡，適合小組討論後回答。`;
+      $("hardCount").textContent = `共 ${bank.hard.length} 張題卡，適合挑戰與加分。`;
+    }
+
+    function startDraw(difficulty) {
+      clearTimer();
+      currentDifficulty = difficulty;
+      currentQuestions = shuffle([...questionBank[currentGrade][difficulty]]);
+      currentQuestion = null;
+      answerRevealed = false;
+      secondsLeft = 40;
+
+      $("drawTitle").textContent = `${questionBank[currentGrade].label}｜${difficultyText[difficulty]}題`;
+      $("drawStatus").textContent = "洗牌中，請稍候";
+      $("cardsSpread").innerHTML = "";
+      $("cardsSpread").classList.remove("show");
+      $("questionView").classList.remove("show");
+      $("answerBox").classList.remove("show");
+      $("afterActions").classList.remove("show");
+      $("finishEarlyBtn").disabled = false;
+      $("timerHint").textContent = "學生作答中，時間到會自動公布答案。";
+      setTimerUI(40);
+
+      showScreen("drawScreen");
+      $("shuffleZone").classList.add("show");
+
+      window.setTimeout(() => {
+        $("shuffleZone").classList.remove("show");
+        renderCards();
+        $("drawStatus").textContent = "請學生選一張題卡";
+      }, 1600);
+    }
+
+    function renderCards() {
+      const spread = $("cardsSpread");
+      spread.innerHTML = "";
+      const count = currentQuestions.length;
+
+      currentQuestions.forEach((item, index) => {
+        const card = document.createElement("button");
+        card.className = "pick-card";
+        card.type = "button";
+        card.setAttribute("aria-label", `選擇第 ${index + 1} 張題卡`);
+        card.style.setProperty("--deal-delay", `${index * 42}ms`);
+        card.style.setProperty("--spread-rotate", `${((index % 7) - 3) * 2.4}deg`);
+        card.dataset.index = index;
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-back"><span>？</span></div>
+            <div class="card-face card-front">題卡</div>
+          </div>
+        `;
+        card.addEventListener("click", () => pickCard(index, card));
+        spread.appendChild(card);
+      });
+
+      requestAnimationFrame(() => spread.classList.add("show"));
+    }
+
+    function pickCard(index, selectedCard) {
+      currentQuestion = currentQuestions[index];
+      $("drawStatus").textContent = "抽卡完成";
+      document.querySelectorAll(".pick-card").forEach((card, i) => {
+        card.disabled = true;
+        if (i === index) {
+          card.classList.add("chosen");
+        } else {
+          const x = i % 2 === 0 ? -420 : 420;
+          const y = -280 + (i % 5) * 30;
+          card.style.setProperty("--collect-x", `${x}px`);
+          card.style.setProperty("--collect-y", `${y}px`);
+          card.classList.add("collect");
+        }
+      });
+
+      window.setTimeout(() => {
+        selectedCard.classList.add("flipped");
+      }, 420);
+
+      window.setTimeout(() => {
+        $("cardsSpread").classList.remove("show");
+        showQuestion();
+      }, 1150);
+    }
+
+    function showQuestion() {
+      $("questionNumber").textContent = `${questionBank[currentGrade].label}｜${difficultyText[currentDifficulty]}題`;
+      document.body.classList.toggle("low-grade-mode", currentGrade === "low");
+      setDisplayText($("questionText"), currentQuestion.q);
+      setDisplayText($("answerText"), currentQuestion.a);
+      adjustTextFit();
+      $("answerBox").classList.remove("show");
+      $("afterActions").classList.remove("show");
+      $("finishEarlyBtn").disabled = false;
+      $("questionView").classList.add("show");
+      $("drawStatus").textContent = "40 秒倒數開始";
+      startTimer();
+    }
+
+    function adjustTextFit() {
+      const question = $("questionText");
+      const answer = $("answerText");
+      const qLength = question.textContent.length;
+      const aLength = answer.textContent.length;
+
+      question.style.fontSize = "";
+      answer.style.fontSize = "";
+
+      if (currentGrade === "low") {
+        if (qLength >= 30) question.style.fontSize = "clamp(1.08rem, 2.15vw, 2.3rem)";
+        else if (qLength >= 22) question.style.fontSize = "clamp(1.16rem, 2.3vw, 2.5rem)";
+
+        if (aLength >= 30) answer.style.fontSize = "clamp(1rem, 2vw, 2rem)";
+        else if (aLength >= 20) answer.style.fontSize = "clamp(1.08rem, 2.15vw, 2.2rem)";
+      } else {
+        if (qLength >= 30) question.style.fontSize = "clamp(1.45rem, 2.65vw, 2.9rem)";
+        else if (qLength >= 22) question.style.fontSize = "clamp(1.6rem, 2.95vw, 3.25rem)";
+
+        if (aLength >= 30) answer.style.fontSize = "clamp(1.25rem, 2.45vw, 2.35rem)";
+        else if (aLength >= 20) answer.style.fontSize = "clamp(1.35rem, 2.8vw, 2.55rem)";
+      }
+    }
+
+    function startTimer() {
+      clearTimer();
+      secondsLeft = 40;
+      answerRevealed = false;
+      setTimerUI(secondsLeft);
+
+      timer = window.setInterval(() => {
+        secondsLeft -= 1;
+        setTimerUI(secondsLeft);
+
+        if (secondsLeft <= 0) {
+          revealAnswer(false);
+        }
+      }, 1000);
+    }
+
+    function setTimerUI(seconds) {
+      const safeSeconds = Math.max(0, seconds);
+      $("timerNumber").textContent = safeSeconds;
+      const progress = (safeSeconds / 40) * 100;
+      document.documentElement.style.setProperty("--timer-progress", `${progress}%`);
+
+      if (safeSeconds <= 10) {
+        $("timerRing").style.background = `conic-gradient(var(--danger) ${progress}%, rgba(255,244,222,0.11) 0)`;
+      } else {
+        $("timerRing").style.background = `conic-gradient(var(--accent-2) ${progress}%, rgba(255,244,222,0.11) 0)`;
+      }
+    }
+
+    function revealAnswer(isEarly) {
+      if (answerRevealed || !currentQuestion) return;
+      answerRevealed = true;
+      clearTimer();
+      $("finishEarlyBtn").disabled = true;
+      $("answerBox").classList.add("show");
+      $("afterActions").classList.add("show");
+      $("drawStatus").textContent = isEarly ? "已提前公布解答" : "時間到，公布解答";
+      $("timerHint").textContent = "答題流程結束後，請回到難度選擇或同難度再抽。";
+      setTimerUI(0);
+    }
+
+    function returnToDifficulty() {
+      clearTimer();
+      answerRevealed = false;
+      $("shuffleZone").classList.remove("show");
+      $("cardsSpread").classList.remove("show");
+      $("questionView").classList.remove("show");
+      showScreen("difficultyScreen");
+    }
+
+    function clearTimer() {
+      if (timer) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    updateDifficultyScreen();
+  </script>
+</body>
+</html>
