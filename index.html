@@ -1294,7 +1294,7 @@
 
               <div id="afterActions" class="after-actions">
                 <button class="primary-btn" onclick="returnToDifficulty()">回到難度選擇</button>
-                <button class="ghost-btn" onclick="startDraw(currentDifficulty)">同難度再抽一題</button>
+                <button id="sameDifficultyBtn" class="ghost-btn" onclick="startDraw(currentDifficulty)">同難度再抽一題</button>
               </div>
             </div>
           </div>
@@ -1650,6 +1650,7 @@
                   {
                         "q": "臺灣東部常見高山和海岸相近，地形比較平坦還是崎嶇？",
                         "a": "崎嶇。"
+                  },
                   {
                         "q": "臺灣歷史上曾經經歷日本統治，時間從 1895 年到哪一年？",
                         "a": "1945 年。"
@@ -1742,6 +1743,38 @@
       hard: "困難"
     };
 
+    const remainingQuestions = {};
+
+    function initializeRemainingQuestions() {
+      Object.keys(questionBank).forEach(grade => {
+        remainingQuestions[grade] = {};
+        Object.keys(difficultyText).forEach(difficulty => {
+          remainingQuestions[grade][difficulty] = questionBank[grade][difficulty].map((item, index) => ({
+            ...item,
+            _cardId: `${grade}-${difficulty}-${index}`
+          }));
+        });
+      });
+    }
+
+    function getRemainingQuestions(grade, difficulty) {
+      return remainingQuestions[grade]?.[difficulty] || [];
+    }
+
+    function removeDrawnQuestion(grade, difficulty, question) {
+      if (!question) return;
+      remainingQuestions[grade][difficulty] = getRemainingQuestions(grade, difficulty)
+        .filter(item => item._cardId !== question._cardId);
+    }
+
+    function updateSameDifficultyButton() {
+      const button = $("sameDifficultyBtn");
+      if (!button) return;
+      const left = getRemainingQuestions(currentGrade, currentDifficulty).length;
+      button.disabled = left <= 0;
+      button.textContent = left > 0 ? `同難度再抽一題（剩 ${left} 張）` : "此難度已抽完";
+    }
+
 
     function setDisplayText(element, text) {
       element.textContent = text;
@@ -1775,16 +1808,24 @@
 
     function updateDifficultyScreen() {
       const bank = questionBank[currentGrade];
+      const easyLeft = getRemainingQuestions(currentGrade, "easy").length;
+      const mediumLeft = getRemainingQuestions(currentGrade, "medium").length;
+      const hardLeft = getRemainingQuestions(currentGrade, "hard").length;
+
       $("gradeLabel").textContent = `Step 2｜${bank.label}`;
-      $("easyCount").textContent = `共 ${bank.easy.length} 張題卡，適合暖身與快速搶答。`;
-      $("mediumCount").textContent = `共 ${bank.medium.length} 張題卡，適合小組討論後回答。`;
-      $("hardCount").textContent = `共 ${bank.hard.length} 張題卡，適合挑戰與加分。`;
+      $("easyCount").textContent = `剩 ${easyLeft} / 共 ${bank.easy.length} 張題卡，適合暖身與快速搶答。`;
+      $("mediumCount").textContent = `剩 ${mediumLeft} / 共 ${bank.medium.length} 張題卡，適合小組討論後回答。`;
+      $("hardCount").textContent = `剩 ${hardLeft} / 共 ${bank.hard.length} 張題卡，適合挑戰與加分。`;
+
+      document.querySelector(".difficulty-btn.easy").disabled = easyLeft <= 0;
+      document.querySelector(".difficulty-btn.medium").disabled = mediumLeft <= 0;
+      document.querySelector(".difficulty-btn.hard").disabled = hardLeft <= 0;
     }
 
     function startDraw(difficulty) {
       clearTimer();
       currentDifficulty = difficulty;
-      currentQuestions = shuffle([...questionBank[currentGrade][difficulty]]);
+      currentQuestions = shuffle([...getRemainingQuestions(currentGrade, difficulty)]);
       currentQuestion = null;
       answerRevealed = false;
       secondsLeft = 40;
@@ -1801,13 +1842,37 @@
       setTimerUI(40);
 
       showScreen("drawScreen");
+
+      if (currentQuestions.length === 0) {
+        showEmptyDeck();
+        return;
+      }
+
       $("shuffleZone").classList.add("show");
 
       window.setTimeout(() => {
         $("shuffleZone").classList.remove("show");
         renderCards();
-        $("drawStatus").textContent = "請學生選一張題卡";
+        $("drawStatus").textContent = `請學生選一張題卡｜剩 ${currentQuestions.length} 張`;
       }, 1600);
+    }
+
+    function showEmptyDeck() {
+      $("shuffleZone").classList.remove("show");
+      $("cardsSpread").innerHTML = "";
+      $("cardsSpread").classList.remove("show");
+      $("questionNumber").textContent = `${questionBank[currentGrade].label}｜${difficultyText[currentDifficulty]}題`;
+      setDisplayText($("questionText"), "這個難度的題卡已經全部抽完了");
+      setDisplayText($("answerText"), "請回到難度選擇，換一個難度繼續抽卡。若要重新開始整輪題庫，重新整理網頁即可。");
+      adjustTextFit();
+      $("answerBox").classList.remove("show");
+      $("finishEarlyBtn").disabled = true;
+      $("afterActions").classList.add("show");
+      updateSameDifficultyButton();
+      $("questionView").classList.add("show");
+      $("drawStatus").textContent = "這個難度已抽完";
+      $("timerHint").textContent = "這一組年級與難度已經沒有剩餘題卡。";
+      setTimerUI(0);
     }
 
     function renderCards() {
@@ -1838,7 +1903,10 @@
 
     function pickCard(index, selectedCard) {
       currentQuestion = currentQuestions[index];
-      $("drawStatus").textContent = "抽卡完成";
+      removeDrawnQuestion(currentGrade, currentDifficulty, currentQuestion);
+      updateDifficultyScreen();
+      const left = getRemainingQuestions(currentGrade, currentDifficulty).length;
+      $("drawStatus").textContent = `抽卡完成｜剩 ${left} 張`;
       document.querySelectorAll(".pick-card").forEach((card, i) => {
         card.disabled = true;
         if (i === index) {
@@ -1871,6 +1939,7 @@
       $("answerBox").classList.remove("show");
       $("afterActions").classList.remove("show");
       $("finishEarlyBtn").disabled = false;
+      updateSameDifficultyButton();
       $("questionView").classList.add("show");
       $("drawStatus").textContent = "40 秒倒數開始";
       startTimer();
@@ -1947,6 +2016,7 @@
       $("shuffleZone").classList.remove("show");
       $("cardsSpread").classList.remove("show");
       $("questionView").classList.remove("show");
+      updateDifficultyScreen();
       showScreen("difficultyScreen");
     }
 
@@ -1973,6 +2043,7 @@
       }
     }
 
+    initializeRemainingQuestions();
     updateDifficultyScreen();
   </script>
 </body>
